@@ -24,18 +24,18 @@ class SecondHandCarSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        yield Request(url="https://www.che168.com/guangzhou/a0_0ms1dgscncgpi1ltocsp1exe10b1x0/",headers=self.headers,callback=self.page_parse)
+        yield Request(url="https://www.che168.com/guangzhou/a0_0ms1dgscncgpi1ltocsp1exe10b1x0/",headers=self.headers,callback=self.page_parse)      #初始页面
 
     def page_parse(self,response):
         body = response.body.decode("gbk")      #
         select = Selector(text=body)
-        if u"下一页" in body:
+        if u"下一页" in body:      #翻页
             page_url_select = select.xpath("//div[@id='listpagination']//a[@class='page-item-next']/@href")
             page_url = self.pre_url + page_url_select.extract()[0]
             yield Request(url=page_url, headers=self.headers, callback=self.page_parse)
 
         url_select = select.xpath("//ul[@id='viewlist_ul']//li[@class='']/a/@href").extract()
-        for lo in url_select[:2]:
+        for lo in url_select:       #逐个访问
             temp_url = self.pre_url + lo
             print temp_url
             yield Request(url=temp_url,headers=self.headers)
@@ -72,7 +72,7 @@ class SecondHandCarSpider(scrapy.Spider):
                 fp = open(pic_name, 'wb')
                 fp.write(pic.content)
                 fp.close()
-                phone = pytesser.image_file_to_string(pic_name).replace("\n","").replace(" ","")
+                phone = pytesser.image_file_to_string(pic_name).replace("\n","").replace(" ","")        #pytesser进行图像识别
             else:
                 phone = ""
         except:
@@ -81,6 +81,6 @@ class SecondHandCarSpider(scrapy.Spider):
 
         data = {"title":title_select, "price":price_select, "mileage":mileage_select, "first_l":first_license_select, "shift":shift, "displacement":displacement, "location":locate_select, "m_place":m_place, "p_time":p_time, "phone":phone}
         jjson = json.dumps(data) + "\n"
-        fp = open("info.txt", 'a')
+        fp = open("info.txt", 'a')          #简单写并没有写入数局库，数据记录在文本
         fp.write(jjson)
         fp.close()
